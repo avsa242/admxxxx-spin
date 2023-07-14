@@ -5,7 +5,7 @@
     Description: Demo of the ADMXXXX LCD driver
     Copyright (c) 2023
     Started Jan 21, 2023
-    Updated Jan 22, 2023
+    Updated Jul 14, 2023
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -17,17 +17,13 @@ CON
 
 ' -- User-defined constants
     SER_BAUD    = 115_200
-    LED         = cfg#LED1
 
-    SCL_PIN     = 28
-    SDA_PIN     = 29
-    I2C_FREQ    = 9600                          ' max is 1_000_000
 ' --
 
 OBJ
 
     cfg :   "boardcfg.flip"
-    disp:   "display.lcd-alpha.admxxxx"
+    disp:   "display.lcd-alpha.admxxxx" | SCL=28, SDA=29, I2C_FREQ=9600, I2C_ADDR=0
 
 PUB main{}
 
@@ -36,7 +32,7 @@ PUB main{}
     ser.clear{}
     ser.strln(string("Serial terminal started"))
 
-    if disp.startx(SCL_PIN, SDA_PIN, I2C_FREQ, 0)
+    if ( disp.start{} )
         ser.strln(string("ADMXXXX driver started (I2C)"))
     else
         ser.strln(string("ADMXXXX driver failed to start - halting"))

@@ -5,7 +5,7 @@
     Description: Driver for the Sparkfun ADMxxxx alphanumeric LCD
     Copyright (c) 2023
     Started Jan 21, 2023
-    Updated Jan 21, 2023
+    Updated Jul 14, 2023
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -15,15 +15,35 @@ CON
     SLAVE_WR    = core#SLAVE_ADDR
     SLAVE_RD    = SLAVE_WR | 1
 
+    DEF_SCL     = 28
+    DEF_SDA     = 29
+    DEF_HZ      = 9600
+    DEF_ADDR    = 0
+    I2C_MAX_FREQ= 9600
+
+
+    { default I/O settings; these can be overridden in the parent object }
+    SCL         = DEF_SCL
+    SDA         = DEF_SDA
+    I2C_FREQ    = DEF_HZ
+    I2C_ADDR    = DEF_ADDR
+
 OBJ
 
     i2c:    "com.i2c"
     core:   "core.con.admxxxx"
     time:   "time"
 
+PUB null{}
+' This is not a top-level object
+
+PUB start{}: status
+' Start using default I/O settings
+    return startx(SCL, SDA, I2C_FREQ, I2C_ADDR)
+
 PUB startx(I2C_SCL, I2C_SDA, I2C_FREQ, ADDR_BITS): status
 ' Start the driver using custom I/O settings
-    if (lookdown(I2C_SCL: 0..31) and lookdown(I2C_SDA: 0..31))
+    if ( lookdown(I2C_SCL: 0..31) and lookdown(I2C_SDA: 0..31) )
         if ( status := i2c.init(I2C_SCL, I2C_SDA, 9600) )
             time.usleep(core#T_POR)
             return
@@ -115,7 +135,7 @@ PUB reset()
 
 DAT
 {
-Copyright 2022 Jesse Burt
+Copyright 2023 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
