@@ -1,13 +1,12 @@
-{                                                                                                      
-    --------------------------------------------
-    Filename: core.con.admxxxx.spin
-    Author: Jesse Burt
-    Description: ADMxxxx-specific constants
-    Copyright (c) 2023
-    Started Jan 21, 2023
-    Updated Jan 21, 2023
-    See end of file for terms of use.
-    --------------------------------------------
+{
+----------------------------------------------------------------------------------------------------
+    Filename:       core.con.admxxxx.spin
+    Description:    ADMxxxx-specific constants
+    Author:         Jesse Burt
+    Started:        Jan 21, 2023
+    Updated:        Sep 28, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
 
 CON
@@ -81,5 +80,25 @@ Command cheat sheet:
          For example, to change the baud rate to 115200 send 124 followed by 18.
  '+'    / 43 / 0x2B - Set Backlight to RGB value, follow + by 3 numbers 0 to 255, for the r, g and b values.
          For example, to change the backlight to yellow send + followed by 255, 255 and 0.
+}
+
+DAT
+{
+Copyright 2024 Jesse Burt
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 }
 

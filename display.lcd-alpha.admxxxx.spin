@@ -1,32 +1,32 @@
-{                                                                                                      
-    --------------------------------------------
-    Filename: display.lcd-alpha.admxxxx.spin
-    Author: Jesse Burt
-    Description: Driver for the Sparkfun ADMxxxx alphanumeric LCD
-    Copyright (c) 2023
-    Started Jan 21, 2023
-    Updated Jul 14, 2023
-    See end of file for terms of use.
-    --------------------------------------------
+{
+----------------------------------------------------------------------------------------------------
+    Filename:       display.lcd-alpha.admxxxx.spin
+    Description:    Driver for the Sparkfun ADMxxxx alphanumeric LCD
+    Author:         Jesse Burt
+    Started:        Jan 21, 2023
+    Updated:        Sep 28, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
 
 CON
 
-    SLAVE_WR    = core#SLAVE_ADDR
+    { default I/O settings; these can be overridden in the parent object }
+    { display dimensions }
+    WIDTH       = 20
+    HEIGHT      = 4
+
+    { I2C }
+    SCL         = 28
+    SDA         = 29
+    I2C_FREQ    = 9600                          ' max = 1_000_000 (only 9600 supported currently)
+    I2C_ADDR    = 0
+
+    SLAVE_WR    = core.SLAVE_ADDR
     SLAVE_RD    = SLAVE_WR | 1
 
-    DEF_SCL     = 28
-    DEF_SDA     = 29
-    DEF_HZ      = 9600
-    DEF_ADDR    = 0
     I2C_MAX_FREQ= 9600
 
-
-    { default I/O settings; these can be overridden in the parent object }
-    SCL         = DEF_SCL
-    SDA         = DEF_SDA
-    I2C_FREQ    = DEF_HZ
-    I2C_ADDR    = DEF_ADDR
 
 OBJ
 
@@ -34,28 +34,40 @@ OBJ
     core:   "core.con.admxxxx"
     time:   "time"
 
-PUB null{}
+
+PUB null()
 ' This is not a top-level object
 
-PUB start{}: status
+
+PUB start(): status
 ' Start using default I/O settings
     return startx(SCL, SDA, I2C_FREQ, I2C_ADDR)
 
-PUB startx(I2C_SCL, I2C_SDA, I2C_FREQ, ADDR_BITS): status
+
+PUB startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS): status
 ' Start the driver using custom I/O settings
-    if ( lookdown(I2C_SCL: 0..31) and lookdown(I2C_SDA: 0..31) )
-        if ( status := i2c.init(I2C_SCL, I2C_SDA, 9600) )
-            time.usleep(core#T_POR)
+'   SCL_PIN:    I2C clock, 0..31
+'   SDA_PIN:    I2C data, 0..31
+'   I2C_HZ:     I2C clock speed (currently ignored)
+'   ADDR_BITS:  I2C alternate address bit, 0..1
+'   Returns:
+'       cog ID+1 of I2C engine on success (= calling cog ID+1, if the bytecode I2C engine is used)
+'       0 on failure
+    if ( lookdown(SCL_PIN: 0..31) and lookdown(SDA_PIN: 0..31) )
+        if ( status := i2c.init(SCL_PIN, SDA_PIN, 9600) )
+            time.usleep(core.T_POR)
             return
     return false
+
 
 PUB backlight_ena(b)
 ' Enable backlight
 '   NOTE: Enabling turns the backlight on full-brightness white
-    if (b)
+    if ( b )
         bgcolor($ff_ff_ff_00)
     else
         bgcolor(0)
+
 
 PUB bgcolor(c)
 ' Set background (backlight) color
@@ -63,22 +75,24 @@ PUB bgcolor(c)
 '       $00_00_00_00..$ff_ff_ff_00 (LSB ignored)
     i2c.start
     i2c.write(SLAVE_WR)
-    i2c.write(core#SETTING_MODE)
-    i2c.write(core#BL_RGB)
+    i2c.write(core.SETTING_MODE)
+    i2c.write(core.BL_RGB)
     i2c.write(c.byte[3])                        ' r
     i2c.write(c.byte[2])                        ' g
     i2c.write(c.byte[1])                        ' b
     i2c.stop
+
 
 PUB contrast(l)
 ' Set LCD contrast
 '   Valid values: 0..255 (clamped to range; default: 120)
     i2c.start()
     i2c.write(SLAVE_WR)
-    i2c.write(core#SETTING_MODE)
-    i2c.write(core#CONTRAST)
+    i2c.write(core.SETTING_MODE)
+    i2c.write(core.CONTRAST)
     i2c.write(0 #> l <# 255)
     i2c.stop()
+
 
 PUB cursor_mode(mode)
 ' Set cursor mode
@@ -90,7 +104,7 @@ PUB cursor_mode(mode)
 '   Any other value is ignored
     i2c.start()
     i2c.write(SLAVE_WR)
-    i2c.write(core#CMD_MODE)
+    i2c.write(core.CMD_MODE)
     case mode
         0:
             mode := %100
@@ -103,24 +117,27 @@ PUB cursor_mode(mode)
 
     i2c.write($08 + mode)
     i2c.stop()
+
    
 PUB clear()
 ' Clear the display
     i2c.start()
     i2c.write(SLAVE_WR)
-    i2c.write(core#SETTING_MODE)
-    i2c.write(core#CLEAR)
+    i2c.write(core.SETTING_MODE)
+    i2c.write(core.CLEAR)
     i2c.stop()
+
 
 PUB pos_xy(x, y) ' XXX not functional
 ' Set cursor position
     i2c.start()
     i2c.write(SLAVE_WR)
-    i2c.write(core#CMD_MODE)
+    i2c.write(core.CMD_MODE)
     i2c.write(128 + ((64 * y) + x))
     i2c.stop()
     time.msleep(2)
    
+
 PUB putchar(ch)
 ' Display a character
     i2c.start
@@ -128,14 +145,17 @@ PUB putchar(ch)
     i2c.wr_byte(32 #> ch <# 123)
     i2c.stop
 
+
 PUB reset()
 
-' Pull in standard terminal methods (putbin(), putdec(), puthex(), puts(), etc)
-#include "terminal.common.spinh"
+
+#include "terminal.common.spinh"                ' use code common to all terminal drivers
+                                                '   (puts(), putbin(), putdec(), puthex(), printf()
+                                                '   etc)
 
 DAT
 {
-Copyright 2023 Jesse Burt
+Copyright 2024 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
