@@ -1,0 +1,174 @@
+{
+----------------------------------------------------------------------------------------------------
+    Filename:       display.lcd-alpha.admxxxx.spin2
+    Description:    Driver for the Sparkfun ADMxxxx alphanumeric LCD
+    Author:         Jesse Burt
+    Started:        Sep 28, 2024
+    Updated:        Sep 28, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
+}
+
+CON
+
+    { default I/O settings; these can be overridden in the parent object }
+    { display dimensions }
+    WIDTH       = 20
+    HEIGHT      = 4
+
+    { I2C }
+    SCL         = 0
+    SDA         = 1
+    I2C_FREQ    = 9600                          ' max = 1_000_000 (only 9600 supported currently)
+    I2C_ADDR    = 0
+
+    SLAVE_WR    = core.SLAVE_ADDR
+    SLAVE_RD    = SLAVE_WR | 1
+
+    I2C_MAX_FREQ= 9600
+
+
+OBJ
+
+    i2c:    "com.i2c"
+    core:   "core.con.admxxxx"
+
+
+PUB null()
+' This is not a top-level object
+
+
+PUB start(): status
+' Start using default I/O settings
+    return startx(SCL, SDA, I2C_FREQ, I2C_ADDR)
+
+
+PUB startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS): status
+' Start the driver using custom I/O settings
+'   SCL_PIN:    I2C clock, 0..63
+'   SDA_PIN:    I2C data, 0..63
+'   I2C_HZ:     I2C clock speed (currently ignored)
+'   ADDR_BITS:  I2C alternate address bit, 0..1
+'   Returns:
+'       cog ID+1 of I2C engine on success (= calling cog ID+1, if the bytecode I2C engine is used)
+'       0 on failure
+    if ( lookdown(SCL_PIN: 0..63) and lookdown(SDA_PIN: 0..63) )
+        if ( status := i2c.init(SCL_PIN, SDA_PIN, 9600) )
+            waitus(core.T_POR)
+            return
+    return false
+
+
+PUB backlight_ena(b)
+' Enable backlight
+'   NOTE: Enabling turns the backlight on full-brightness white
+    if ( b )
+        bgcolor($ff_ff_ff_00)
+    else
+        bgcolor(0)
+
+
+PUB bgcolor(c)
+' Set background (backlight) color
+'   Valid values (RR_GG_BB_00):
+'       $00_00_00_00..$ff_ff_ff_00 (LSB ignored)
+    i2c.start
+    i2c.write(SLAVE_WR)
+    i2c.write(core.SETTING_MODE)
+    i2c.write(core.BL_RGB)
+    i2c.write(c.byte[3])                        ' r
+    i2c.write(c.byte[2])                        ' g
+    i2c.write(c.byte[1])                        ' b
+    i2c.stop
+
+
+PUB contrast(l)
+' Set LCD contrast
+'   Valid values: 0..255 (clamped to range; default: 120)
+    i2c.start()
+    i2c.write(SLAVE_WR)
+    i2c.write(core.SETTING_MODE)
+    i2c.write(core.CONTRAST)
+    i2c.write(0 #> l <# 255)
+    i2c.stop()
+
+
+PUB cursor_mode(mode)
+' Set cursor mode
+'   Valid values:
+'       0: No cursor
+'       1: Block, blinking
+'       2: Underscore, no blinking
+'       3: Underscore, block blinking
+'   Any other value is ignored
+    i2c.start()
+    i2c.write(SLAVE_WR)
+    i2c.write(core.CMD_MODE)
+    case mode
+        0:
+            mode := %100
+        1:
+            mode := %101
+        2:
+            mode := %110
+        3:
+            mode := %111
+
+    i2c.write($08 + mode)
+    i2c.stop()
+
+   
+PUB clear()
+' Clear the display
+    i2c.start()
+    i2c.write(SLAVE_WR)
+    i2c.write(core.SETTING_MODE)
+    i2c.write(core.CLEAR)
+    i2c.stop()
+
+
+PUB pos_xy(x, y) ' XXX not functional
+' Set cursor position
+    i2c.start()
+    i2c.write(SLAVE_WR)
+    i2c.write(core.CMD_MODE)
+    i2c.write(128 + ((64 * y) + x))
+    i2c.stop()
+    waitms(2)
+   
+
+PUB putchar(ch)
+' Display a character
+    i2c.start
+    i2c.write(SLAVE_WR)
+    i2c.wr_byte(32 #> ch <# 123)
+    i2c.stop
+
+
+PUB reset()
+
+
+#include "terminal.common.spin2h"               ' use code common to all terminal drivers
+                                                '   (puts(), putbin(), putdec(), puthex(), printf()
+                                                '   etc)
+
+DAT
+{
+Copyright 2024 Jesse Burt
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}
+

@@ -18,9 +18,12 @@ This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the Sparkfu
 
 P1/SPIN1:
 * spin-standard-library
+* terminal.common.spinh (provided by the spin-standard-library)
+
 
 P2/SPIN2:
-* ~~p2-spin-standard-library~~ _(not yet implemented)_
+* p2-spin-standard-library
+* terminal.common.spin2h (provided by the p2-spin-standard-library)
 
 
 ## Compiler Compatibility
@@ -29,8 +32,8 @@ P2/SPIN2:
 |-----------|----------|------------------------|--------------|-----------------------|
 | P1        | SPIN1    | FlexSpin (6.9.4)       | Bytecode     | OK                    |
 | P1        | SPIN1    | FlexSpin (6.9.4)       | Native/PASM  | OK                    |
-| P2        | SPIN2    | FlexSpin (6.9.4)       | NuCode       | Not yet implemented   |
-| P2        | SPIN2    | FlexSpin (6.9.4)       | Native/PASM2 | Not yet implemented   |
+| P2        | SPIN2    | FlexSpin (6.9.4)       | NuCode       | Untested              |
+| P2        | SPIN2    | FlexSpin (6.9.4)       | Native/PASM2 | Untested              |
 
 (other versions or toolchains not listed are __not supported__, and _may or may not_ work)
 
@@ -42,5 +45,4 @@ P2/SPIN2:
 * Doesn't yet support changing I2C address
 * Doesn't fully support cursor positioning
 * Doesn't yet support custom characters
-* Not yet ported to P2
 
