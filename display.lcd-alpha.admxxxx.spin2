@@ -4,8 +4,8 @@
     Description:    Driver for the Sparkfun ADMxxxx alphanumeric LCD
     Author:         Jesse Burt
     Started:        Sep 28, 2024
-    Updated:        Sep 28, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Updated:        May 22, 2025
+    Copyright (c) 2025 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
@@ -68,32 +68,24 @@ PUB backlight_ena(b)
         bgcolor(0)
 
 
-PUB bgcolor(c)
+PUB bgcolor(c) | t
 ' Set background (backlight) color
 '   Valid values (RR_GG_BB_00):
 '       $00_00_00_00..$ff_ff_ff_00 (LSB ignored)
-    i2c.start
-    i2c.write(SLAVE_WR)
-    i2c.write(core.SETTING_MODE)
-    i2c.write(core.BL_RGB)
-    i2c.write(c.byte[3])                        ' r
-    i2c.write(c.byte[2])                        ' g
-    i2c.write(c.byte[1])                        ' b
-    i2c.stop
+    t.byte[0] := c.byte[3]
+    t.byte[1] := c.byte[2]
+    t.byte[2] := c.byte[1]
+    t.byte[3] := 0
 
+    writereg(core.BL_RGB, t, 3)
 
 PUB contrast(l)
 ' Set LCD contrast
 '   Valid values: 0..255 (clamped to range; default: 120)
-    i2c.start()
-    i2c.write(SLAVE_WR)
-    i2c.write(core.SETTING_MODE)
-    i2c.write(core.CONTRAST)
-    i2c.write(0 #> l <# 255)
-    i2c.stop()
+    writereg(core.CONTRAST, 0 #> l <# 255)
 
 
-PUB cursor_mode(mode)
+PUB cursor_mode(m)
 ' Set cursor mode
 '   Valid values:
 '       0: No cursor
@@ -101,37 +93,29 @@ PUB cursor_mode(mode)
 '       2: Underscore, no blinking
 '       3: Underscore, block blinking
 '   Any other value is ignored
-    i2c.start()
-    i2c.write(SLAVE_WR)
-    i2c.write(core.CMD_MODE)
-    case mode
+    address_lcd(core.CMD_MODE)
+    case m
         0:
-            mode := %100
+            m := %100
         1:
-            mode := %101
+            m := %101
         2:
-            mode := %110
+            m := %110
         3:
-            mode := %111
+            m := %111
 
-    i2c.write($08 + mode)
+    i2c.write($08 + m)
     i2c.stop()
 
    
 PUB clear()
 ' Clear the display
-    i2c.start()
-    i2c.write(SLAVE_WR)
-    i2c.write(core.SETTING_MODE)
-    i2c.write(core.CLEAR)
-    i2c.stop()
+    writereg(core.CLEAR)
 
 
 PUB pos_xy(x, y) ' XXX not functional
 ' Set cursor position
-    i2c.start()
-    i2c.write(SLAVE_WR)
-    i2c.write(core.CMD_MODE)
+    address_lcd(core.CMD_MODE)
     i2c.write(128 + ((64 * y) + x))
     i2c.stop()
     waitms(2)
@@ -139,13 +123,34 @@ PUB pos_xy(x, y) ' XXX not functional
 
 PUB putchar(ch)
 ' Display a character
-    i2c.start
-    i2c.write(SLAVE_WR)
+'   ch:     ASCII value (32..123) to write
+    address_lcd()
     i2c.wr_byte(32 #> ch <# 123)
     i2c.stop
 
 
 PUB reset()
+
+
+PRI address_lcd(md=0)
+' Address the LCD
+'   md:     configuration mode (optional; default is none)
+    i2c.start()
+    i2c.write(SLAVE_WR)
+    if ( md )
+        i2c.write(md)
+
+
+PRI writereg(reg_nr, val=0, len=1)
+' Write value to register
+'   reg_nr:     register
+'   val:        value to write (optional; default is 0)
+'   len:        length/number of bytes to write (optional; default is 1)
+    address_lcd(core.SETTING_MODE)
+    i2c.write(reg_nr)
+    if ( len > 0 )
+        i2c.wrblock_lsbf(@val, len)
+    i2c.stop()
 
 
 #include "terminal.common.spin2h"               ' use code common to all terminal drivers
@@ -154,7 +159,7 @@ PUB reset()
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2025 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

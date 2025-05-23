@@ -4,8 +4,8 @@
     Description:    Demo of the ADMXXXX LCD driver
     Author:         Jesse Burt
     Started:        Jan 21, 2023
-    Updated:        Sep 28, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Updated:        May 22, 2025
+    Copyright (c) 2025 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
@@ -26,10 +26,10 @@ PUB main() | i
 
     setup()
 
-    disp.clear
     disp.backlight_ena(1)
 
     repeat
+        disp.clear()
         disp.str(@"Testing 1 2 3")
         time.sleep(2)
         disp.clear()
@@ -41,14 +41,14 @@ PUB main() | i
             disp.backlight_ena(1)
             time.msleep(100)
 
-        repeat i from 255 to 0
+        repeat i from 127 to 0
             disp.pos_xy(0, 0)
-            disp.printf3(@"%03.3d %02.2x %08.8b", i, i, i)
+            disp.printf(@"%03d %02x %08b", i, i, i)
             time.msleep(50)
         disp.clear()
-        repeat i from 0 to -255
+        repeat i from 0 to -128
             disp.pos_xy(0, 0)
-            disp.printf3(@"%4.4d %02.2x %08.8b", i, i.byte[0], i.byte[0])
+            disp.printf(@"%4d %02x %08b", i, i.byte[0], i.byte[0])
             time.msleep(50)
 
 
@@ -68,7 +68,7 @@ PUB setup()
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2025 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
